@@ -1,0 +1,5 @@
+@tiptap/react : los enlaces de React para Tiptap, incluida la funcionalidad principal de Tiptap.
+@tiptap/pm : Dependencias de ProseMirror de Tiptap, que son necesarias para que el editor funcione.
+@tiptap/starter-kit : una colección de extensiones de uso común que brindan funcionalidad básica como párrafos, encabezados, negrita, cursiva y más.
+
+npm install @tiptap/react @tiptap/pm @tiptap/starter-kit
