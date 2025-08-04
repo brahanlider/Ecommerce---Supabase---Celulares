@@ -3,3 +3,6 @@
 @tiptap/starter-kit : una colección de extensiones de uso común que brindan funcionalidad básica como párrafos, encabezados, negrita, cursiva y más.
 
 npm install @tiptap/react @tiptap/pm @tiptap/starter-kit
+
+
+// 1️⃣ 'shared' indica que es un componente reutilizable (se usa en múltiples lugares)

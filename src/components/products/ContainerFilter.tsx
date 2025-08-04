@@ -1,6 +1,6 @@
 import { Separator } from "../shared/Separator";
 
-// marcas disponibles
+// brands marcas disponibles
 const availableBrands = [
   "Samsung",
   "Apple",
@@ -10,7 +10,26 @@ const availableBrands = [
   "Honor",
 ];
 
-export const ContainerFilter = () => {
+interface Props {
+  selectedBrands: string[];
+  setSelectedBrands: (brands: string[]) => void;
+}
+
+export const ContainerFilter = ({
+  selectedBrands,
+  setSelectedBrands,
+}: Props) => {
+  // Maneja el cambio de selección de marcas (toggle)
+  const handlerBrandsChange = (brand: string) => {
+    // Si la marca ya está seleccionada, la removemos del array
+    if (selectedBrands.includes(brand)) {
+      setSelectedBrands(selectedBrands.filter((b) => b !== brand));
+    } else {
+      // Si la marca no está seleccionada, la agregamos al array
+      setSelectedBrands([...selectedBrands, brand]);
+    }
+  };
+
   return (
     <div className="p-5 border border-slate-500 rounded-lg h-fit col-span-2 lg:col-span-1">
       <h3 className="font-semibold text-xl mb-4">Filtros</h3>
@@ -27,6 +46,10 @@ export const ContainerFilter = () => {
               <input
                 type="checkbox"
                 className="text-black focus:ring-black accent-black border-black"
+                // Determina si el checkbox debe estar marcado (según si la marca está en selectedBrands)
+                checked={selectedBrands.includes(brand)}
+                // Ejecuta handlerBrandsChange cuando cambia el estado del checkbox
+                onChange={() => handlerBrandsChange(brand)}
               />
               <span className="ml-2 text-black text-sm cursor-pointer">
                 {brand}
