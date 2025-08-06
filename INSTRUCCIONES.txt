@@ -2,7 +2,11 @@
 @tiptap/pm : Dependencias de ProseMirror de Tiptap, que son necesarias para que el editor funcione.
 @tiptap/starter-kit : una colección de extensiones de uso común que brindan funcionalidad básica como párrafos, encabezados, negrita, cursiva y más.
 
-npm install @tiptap/react @tiptap/pm @tiptap/starter-kit
+// nuevo: npm install @tiptap/react @tiptap/pm @tiptap/starter-kit
 
 
 // 1️⃣ 'shared' indica que es un componente reutilizable (se usa en múltiples lugares)
+
+
+// nuevo: npm install -D @tailwindcss/typography ==> agrega prose ==> https://github.com/tailwindlabs/tailwindcss-typography
+

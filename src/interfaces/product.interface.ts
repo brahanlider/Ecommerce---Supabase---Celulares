@@ -11,10 +11,11 @@ export interface VariantProduct {
   id: string;
   stock: number;
   price: number;
-  storage: string;
-  color: string;
-  color_name: string;
+  storage: string;  // 256GB
+  color: string; // Código hex: "#000000"
+  color_name: string; // Nombre: "Negro"
 }
+
 
 export interface Product {
   id: string;

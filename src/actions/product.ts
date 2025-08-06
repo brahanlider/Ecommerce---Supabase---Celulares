@@ -82,3 +82,19 @@ export const getRandomProducts = async () => {
 
   return randomProducts; // Retorna 4 productos aleatorios de los 20 más recientes
 };
+
+export const getProductBySlug = async (slug: string) => {
+  const { data: product, error } = await supabase
+    .from("products")
+    .select("*, variants(*)")
+    // Column is equal to a value => filtro de igualdad en la COLUMNA
+    .eq("slug", slug) // tabla="slug"  === parametro=slug
+    .single(); // selecciona uno YA QUE NO DEBE SER ARRAY
+
+  if (error) {
+    console.log(error);
+    throw new Error(error.message);
+  }
+
+  return product;
+};

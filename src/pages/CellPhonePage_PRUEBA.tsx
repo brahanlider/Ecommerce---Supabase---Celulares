@@ -1,0 +1,292 @@
+// import { LuMinus, LuPlus } from "react-icons/lu";
+// import { Separator } from "../components/shared/Separator";
+// import { formatPrice } from "../helpers";
+// import { CiDeliveryTruck } from "react-icons/ci";
+// import { Link, useParams } from "react-router-dom";
+// import { BsChatLeftText } from "react-icons/bs";
+// import { ProductDescription } from "../components/one-product/ProductDescription";
+// import { GridImages } from "../components/one-product/GridImages";
+// import { useProduct } from "../hooks";
+// import { useEffect, useMemo, useState } from "react";
+// import type { VariantProduct } from "../interfaces";
+// import { Tag } from "../components/shared/Tag";
+// import { Loader } from "../components/shared/Loader";
+
+// // colors = acc
+// // acc :{
+// //   "#faeed8": {
+// //     "name": "Amarillo",
+// //     "storages": ["256"]
+// //   },
+// //   "#1d242e": {
+// //     "name": "Oscuro",
+// //     "storages": ["256"]
+// //   }
+// // }
+
+// // Interfaz para agrupar VARIANTES por colors
+// interface Acc {
+//   // Key - clave dinamica: el color como #faeed8 o #000000
+//   [key: string]: {
+//     name: string; // nombre del color (Amarillo, Negro)
+//     storages: string[]; // almacenamiento para ese color=> 256GB
+//   };
+// }
+
+// export const CellPhonePage = () => {
+//   // 1. OBTENER DATOS DEL PRODUCTO
+//   const { slug } = useParams<{ slug: string }>();
+//   const { product, isLoading, isError } = useProduct(slug || "");
+
+//   // 2. ESTADOS PARA SELECCIÓN DE VARIANTES => inicio ninguno null
+//   const [selectedColor, setSelectedColor] = useState<string | null>(null); // Color seleccionado => (ej: "#faeed8")
+//   const [selectedStorage, setSelectedStorage] = useState<string | null>(null); // Almacenamiento seleccionado => (ej: "256")
+//   const [selectedVariant, setSelectedVariant] = useState<VariantProduct | null>( // Variante completa seleccionada =>  variant {}
+//     null
+//   );
+
+//   // 3. AGRUPAR VARIANTES POR COLOR
+//   // {
+//   //   "#faeed8": { name: "Amarillo", storages: ["256GB"] },
+//   //   "#1d242e": { name: "Negro", storages: ["256GB"] }
+//   // }
+//   // useMemo se ejecuta una sola vez a menos que cambie product?.variants.
+//   const colors = useMemo(() => {
+//     return (
+//       // acc = {} → acumulador inicial vacío
+//       // color = "#faeed8" → No existe en acc:
+//       product?.variants.reduce((acc: Acc, variant: VariantProduct) => {
+//         // variant tomara el 1 er objeto porque es el currentValue array[0]
+//         const { color, color_name, storage } = variant;
+//         // Si aún no existe el color en el acumulador => (ej: "#faeed8": {} esta vacio "")
+//         if (!acc[color]) {
+//           // Creamos una entrada con el nombre del color y un array vacío de almacenamientos=>  "#faeed8": {}
+//           acc[color] = { name: color_name, storages: [] };
+//           // Ejem: acc["#faeed8"] = { name: "Beige claro", storages: [] };
+//           //  {
+//           //     "#faeed8": {
+//           //        "name": "Beige claro",
+//           //        "storages": []
+//           //     }
+//           //  }
+//         }
+//         // Si el almacenamiento aún no está registrado para este color
+//         if (!acc[color].storages.includes(storage)) {
+//           acc[color].storages.push(storage); // Añade
+//           // Ejem: acc["#faeed8"].storages.push("256GB");
+//         }
+//         // {
+//         //      "#faeed8": {
+//         //          "name": "Beige claro",
+//         //          "storages": ["256GB"]
+//         //      },
+//         //      "#1d242e": {
+//         //          "name": "Negro nocturno",
+//         //          "storages": ["256GB"]
+//         //      }
+//         // }
+//         return acc;
+//       }, {} as Acc) || {} // Retorna objeto vacío si no hay variantes
+//     );
+//   }, [product?.variants]);
+
+//   // 4. SELECCIÓN AUTOMÁTICA INICIAL (1er color y almacenamiento)
+//   // => colors= { keys :values } ==> //* ["#faeed8", "#1d242e"] // solo las claves (keys)
+//   const availableColors = Object.keys(colors);
+//   //                availableColors[0]; // "#faeed8"
+//   //                availableColors[0].name          // "Beige claro"
+//   //                availableColors[0].storages      // ["256GB"]
+
+//   useEffect(() => {
+//     // 4.1 Si aún no hay color seleccionado y existen colores disponibles
+//     if (!selectedColor && availableColors.length > 0) {
+//       // Seleccionamos automáticamente el primer color disponible
+//       setSelectedColor(availableColors[0]); // "#faeed8"
+//     }
+//   }, [availableColors, selectedColor]);
+
+//   // 4.2 Actualizar el almacenamiento seleccionado cuando cambia el color
+//   useEffect(() => {
+//     // Si hay un color seleccionado, existe en `colors === acc de arriba` y aún no hay almacenamiento seleccionado
+//     // => colors["#faeed8"]
+//     if (selectedColor && colors[selectedColor] && !selectedStorage) {
+//       // Selecciona el primer almacenamiento del color
+//       setSelectedStorage(colors[selectedColor].storages[0]); // Ej: "256GB"
+//     }
+//   }, [selectedColor, colors, selectedStorage]);
+
+//   //* 5. Encuentra VARIANTE SELECCIONADA (combinación color + almacenamiento)
+//   useEffect(() => {
+//     // Solo ejecuta si ya se seleccionaron ambos: color("#faeed8")  y almacenamiento ("256GB")
+//     if (selectedColor && selectedStorage) {
+//       const variant = product?.variants.find(
+//         (variant) =>
+//           variant.color === selectedColor && variant.storage === selectedStorage
+//       );
+
+//       setSelectedVariant(variant as VariantProduct); // ✅ Si no encuentra coincidencia, retorna undefined (por eso el variant as VariantProduct fuerza el tipo).
+//     }
+//   }, [selectedColor, selectedStorage, product?.variants]);
+
+//   // 6. VERIFICAR STOCK
+//   // Obtener el stock de la variante seleccionada  _ isOutOfStock = Está agotado
+//   const isOutOfStock = selectedVariant?.stock === 0;
+
+//   // 7. MANEJO DE ESTADOS DE CARGA Y ERROR
+//   if (isLoading) return <Loader />;
+//   // desaparece el ? de product?
+//   if (!product || isError)
+//     return (
+//       <div className="flex justify-center items-center h-[80vh]">
+//         <p>Producto no Encontrado</p>
+//       </div>
+//     );
+
+//   return (
+//     <>
+//       <div className="h-fit flex flex-col md:flex-row gap-16 mt-8">
+//         {/*  Galeria de IMAGENES GRID   */}
+//         <GridImages images={product.images} />
+
+//         <div className="flex-1 space-y-5">
+//           <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
+
+//           <div className="flex gap-5 items-center">
+//             <span className="tracking-wide text-lg font-semibold">
+//               {formatPrice(selectedVariant?.price || product.variants[0].price)}
+//             </span>
+
+//             <div className="relative">
+//               {/* TAG -> Agotado si no hay stock */}
+//               {isOutOfStock && <Tag contentTag="agotado" />}
+//             </div>
+//           </div>
+
+//           <Separator />
+
+//           {/* CARACTERÍSTICAS  del producto */}
+//           <ul className="space-y-2 ml-7 my-10">
+//             {product.features.map((feature) => (
+//               <li
+//                 key={feature}
+//                 className="text-sm flex items-center gap-2 tracking-tight font-medium"
+//               >
+//                 <span className="bg-black w-[5px] h-[5px] rounded-full" />
+//                 {feature}
+//               </li>
+//             ))}
+//           </ul>
+
+//           {/* SELECTOR DE COLOR (botones circulares) */}
+//           <div className="flex flex-col gap-3">
+//             <p>Color: {selectedColor && colors[selectedColor].name}</p>
+
+//             <div className="flex gap-3">
+//               {availableColors.map((color) => (
+//                 <button
+//                   key={color}
+//                   className={`w-8 h-8 rounded-full flex justify-center items-center
+//                   ${selectedColor === color ? "border border-slate-800" : ""}`}
+//                   onClick={() => setSelectedColor(color)}
+//                 >
+//                   <span
+//                     className="w-[26px] h-[26px] rounded-full"
+//                     style={{ backgroundColor: color }}
+//                   />
+//                 </button>
+//               ))}
+//             </div>
+//           </div>
+
+//           {/* OPCIONES DE ALMACENAMIENTO  (dropdown)*/}
+//           <div className="flex flex-col gap-3">
+//             <p className="text-xs font-medium">Almacenamiento disponible</p>
+
+//             {selectedColor && (
+//               <div className="flex gap-3">
+//                 <select
+//                   className="border border-gray-300 rounded-lg px-3 py-1"
+//                   value={selectedStorage || ""}
+//                   onChange={(e) => setSelectedStorage(e.target.value)}
+//                 >
+//                   {colors[selectedColor].storages.map((storage) => (
+//                     <option value={storage} key={storage}>
+//                       {storage}
+//                     </option>
+//                   ))}
+//                 </select>
+//               </div>
+//             )}
+//           </div>
+
+//           {/* COMPRAR */}
+//           {isOutOfStock ? (
+//             <button
+//               className="bg-[#f3f3f3] uppercase font-semibold tracking-widest text-xs py-4 
+//       rounded-full transition-all duration-300 hover:bg-[#e2e2e2] w-full"
+//               disabled
+//             >
+//               Agotado
+//             </button>
+//           ) : (
+//             <>
+//                {/* CONTADOR  */}
+//               <div className="space-y-3">
+//                 <p className="text-sm font-semibold">Cantidad:</p>
+//                 <div className="flex gap-8 px-5 py-3 border border-slate-200 w-fit rounded-full">
+//                   <button>
+//                     <LuMinus size={15} />
+//                   </button>
+//                   <span className="text-slate-500 text-sm">1</span>
+//                   <button>
+//                     <LuPlus size={15} />
+//                   </button>
+//                 </div>
+//               </div>
+
+//               {/*  BOTONES ACCIÓN */}
+//               <div className="flex flex-col gap-3">
+//                 <button
+//                   className="bg-[#f3f3f3] uppercase font-semibold tracking-widest text-xs 
+// py-4 rounded-full transition-all duration-300 hover:bg-[#e2e2e2]"
+//                 >
+//                   Agregar al carro
+//                 </button>
+
+//                 <button
+//                   className="bg-black text-white uppercase font-semibold tracking-widest
+//                 text-xs py-4 rounded-full"
+//                 >
+//                   Comprar agora
+//                 </button>
+//               </div>
+//             </>
+//           )}
+
+//           {/* INFO DE ENVÍO Y CONTACTO */}
+//           <div className="flex pt-2">
+//             <div className="flex flex-col gap-1 flex-1 items-center">
+//               <CiDeliveryTruck size={35} />
+//               <p className="text-xs font-semibold">Envio gratis</p>
+//             </div>
+
+//             <Link
+//               to="#"
+//               className="flex flex-col gap-1 flex-1 items-center justify-center"
+//             >
+//               <BsChatLeftText size={30} />
+//               <p className="flex flex-col items-center text-xs">
+//                 <span className="font-semibold">¿Necesitas ayuda?</span>
+//                 Contáctanos
+//               </p>
+//             </Link>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* DESCRIPCIÓN (renderizado con Tiptap) */}
+//       {/* description es de supabase  */}
+//       <ProductDescription content={product.description} />
+//     </>
+//   );
+// };
