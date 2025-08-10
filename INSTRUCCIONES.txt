@@ -4,9 +4,16 @@
 
 // nuevo: npm install @tiptap/react @tiptap/pm @tiptap/starter-kit
 
-
+//--------------------- CARPETAS ---------------------
 // 1️⃣ 'shared' indica que es un componente reutilizable (se usa en múltiples lugares)
 
 
 // nuevo: npm install -D @tailwindcss/typography ==> agrega prose ==> https://github.com/tailwindlabs/tailwindcss-typography
+// react-host-toast => https://react-hot-toast.com/
 
+📋 1. Listar todos los archivos y carpetas (estructura completa)
+find . -print
+
+===> JERARQUIZACIÓN DE ARCHIVOS Y CARPETAS <===
+find . -not -path "./node_modules*" -not -path "./.git*" -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'
+find . -not -path "./node_modules*" -not -path "./.git*" -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g' > estructura.txt

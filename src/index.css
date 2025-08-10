@@ -3,15 +3,69 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography"; // comentar para que se active
 
-@theme {
+@theme{
   --color-primary: #168;
   --font-montserrat: "Montserrat", "sans-serif";
 }
 
-/* /* personaliza el contenedor */
+/* Animaciones _ SALE ERROR => si no se usa @theme por separado  */
+@theme {
+  /* aparición gradual */
+  --animate-fade-in: fade-in 0.3s ease-out;
+  /* deslizamiento desde la derecha */
+  --animate-slide-in: slide-in 0.3s ease-out;
+  /* deslizamiento desde la izquierda */
+  --animate-slide-in-left: slide-in-left 0.3s ease-out;
+  /* rotación continua  lenta */
+  --animate-spin-slow: spin 2s linear infinite;
+
+  /* Keyframes */
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-in {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-in-left {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  /* @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  } */
+}
+
+/* /* personaliza el contenedor ----------------- SALE ERROR => si escribes comentarios alado del codigo SALE ERROR */
 @utility container {
   margin-inline: auto;
   padding-inline: 1rem;
+
+  /*  
+  margin-inline: auto;   => INDICA center:true
+  padding-inline: 1rem;  => INDICA margin : 1rem
+  } */
 
   /* @variant sm {
     padding-inline: 2rem;

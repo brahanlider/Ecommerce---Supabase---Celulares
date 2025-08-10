@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import type { VariantProduct } from "../../interfaces";
 import { formatPrice } from "../../helpers";
 import { Tag } from "../shared/Tag";
+import { useCartStore } from "../../store/cart.store";
+import toast from "react-hot-toast";
 
 type Props = {
   img: string;
@@ -28,6 +30,34 @@ export const CardProduct = ({
     color: string;
   }>(colors[0]);
 
+  //
+  const addItem = useCartStore((state) => state.addItem);
+
+  const handleAddClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    if (selectedVariant && selectedVariant.stock > 0) {
+      addItem({
+        variantId: selectedVariant.id,
+        productId: slug,
+        name: name,
+        image: img,
+        color: activeColor.name,
+        storage: selectedVariant.storage,
+        price: selectedVariant.price,
+        quantity: 1,
+      });
+
+      toast.success("Producto añadido al carrito", {
+        position: "bottom-right",
+      });
+    } else {
+      toast.error("Producto agotado", {
+        position: "bottom-right",
+      });
+    }
+  };
+
   // Identificar la variante seleccionado segun el color activo
   const selectedVariant = variants.find(
     (variant) => variant.color === activeColor.color
@@ -49,6 +79,7 @@ export const CardProduct = ({
           className="bg-white border border-slate-200 absolute w-full bottom-0 py-3 rounded-3xl
         flex items-center justify-center gap-1 text-sm font-medium hover:bg-stone-100 translate-y-[100%]
         transition-all duration-300 group-hover:translate-y-0"
+          onClick={handleAddClick}
         >
           <FiPlus />
           Añadir
@@ -61,10 +92,13 @@ export const CardProduct = ({
 
         <div className="flex gap-3">
           {colors.map((color) => (
+            // circulo ?
             <span
               key={color.color}
               className={`
-            grid place-items-center w-5 h-5 rounded-full cursor-pointer`}
+            grid place-items-center w-5 h-5 rounded-full cursor-pointer 
+            ${activeColor.color === color.color ? "border border-black" : ""}`}
+              onClick={() => setActiveColor(color)}
             >
               <span
                 className="w-[14px] h-[14px] rounded-full"

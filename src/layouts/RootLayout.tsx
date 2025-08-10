@@ -3,9 +3,17 @@ import { Navbar } from "../components/shared/Navbar";
 import { Footer } from "../components/shared/Footer";
 import { Banner } from "../components/home/Banner";
 import { Newsletter } from "../components/home/Newsletter";
+import { Sheet } from "../components/shared/Sheet";
+import { useGlobalStore } from "../store/global.store";
+import { NavbarMobile } from "../components/shared/NavbarMobile";
 
 export const RootLayout = () => {
   const { pathname } = useLocation();
+
+  //  Posicion absoluta
+  const isSheetOpen = useGlobalStore((state) => state.isSheetOpen);
+  const activeNavMobile = useGlobalStore((state) => state.activeNavMobile);
+
   console.log(pathname);
 
   return (
@@ -19,6 +27,12 @@ export const RootLayout = () => {
       </main>
 
       {pathname === "/" && <Newsletter />}
+
+      {/* Posicion absoluta fixed creo */}
+      {isSheetOpen && <Sheet />}
+
+      {/* Posicion absoluta fixed */}
+      {activeNavMobile && <NavbarMobile />}
 
       <Footer />
     </div>

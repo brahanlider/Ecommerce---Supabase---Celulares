@@ -82,7 +82,7 @@ export const getRandomProducts = async () => {
 
   return randomProducts; // Retorna 4 productos aleatorios de los 20 más recientes
 };
-
+// acceder /celulares/:id
 export const getProductBySlug = async (slug: string) => {
   const { data: product, error } = await supabase
     .from("products")
@@ -97,4 +97,19 @@ export const getProductBySlug = async (slug: string) => {
   }
 
   return product;
+};
+
+// lupa
+export const searchProducts = async (searchTerm: string) => {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*,variants(*)")
+    .ilike("name", `%${searchTerm}%`); //  Buscar productos cuyo nombre tengo el termino de busqueda _ //  no distingue entre mayúsculas y minúsculas
+
+  if (error) {
+    console.log(error);
+    throw new Error(error.message);
+  }
+
+  return data;
 };

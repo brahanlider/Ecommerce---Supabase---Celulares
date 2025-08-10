@@ -2,7 +2,7 @@ import { LuMinus, LuPlus } from "react-icons/lu";
 import { Separator } from "../components/shared/Separator";
 import { formatPrice } from "../helpers";
 import { CiDeliveryTruck } from "react-icons/ci";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { BsChatLeftText } from "react-icons/bs";
 import { ProductDescription } from "../components/one-product/ProductDescription";
 import { GridImages } from "../components/one-product/GridImages";
@@ -11,6 +11,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { VariantProduct } from "../interfaces";
 import { Tag } from "../components/shared/Tag";
 import { Loader } from "../components/shared/Loader";
+import { useCounterStore } from "../store/counter.store";
+import { useCartStore } from "../store/cart.store";
+import toast from "react-hot-toast";
 
 interface Acc {
   [key: string]: {
@@ -21,21 +24,35 @@ interface Acc {
 
 export const CellPhonePage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { product, isLoading, isError } = useProduct(slug || "");
+  // el estado cambia y tanstack Queri cambia
+  const [currentSlug, setCurrentSlug] = useState(slug); // BUG: solucionado - daba error al buscar en la lupa en el 2do producto
+  const { product, isLoading, isError } = useProduct(currentSlug || "");
 
+  // 3️⃣ Estados para seleccionar la variante
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedStorage, setSelectedStorage] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<VariantProduct | null>(
     null
   );
+  // 4️⃣ Contador global (usado para cantidad a comprar)
+  const count = useCounterStore((state) => state.count);
+  const increment = useCounterStore((state) => state.increment);
+  const decrement = useCounterStore((state) => state.decrement);
 
+  const addItem = useCartStore((state) => state.addItem);
+
+  const navigate = useNavigate();
+
+  // 6️⃣ Agrupamos variantes por color → para generar botones de color y storage
   const colors = useMemo(() => {
     return (
       product?.variants.reduce((acc: Acc, variant: VariantProduct) => {
         const { color, color_name, storage } = variant;
+        // Si el color no existe en el acumulador, lo creamos
         if (!acc[color]) {
           acc[color] = { name: color_name, storages: [] };
         }
+        // Si el storage no existe aún para ese color, lo añadimos
         if (!acc[color].storages.includes(storage)) {
           acc[color].storages.push(storage);
         }
@@ -46,18 +63,21 @@ export const CellPhonePage = () => {
 
   const availableColors = Object.keys(colors);
 
+  // 7️⃣ Cuando se carga el producto, seleccionamos por defecto el primer color disponible
   useEffect(() => {
     if (!selectedColor && availableColors.length > 0) {
       setSelectedColor(availableColors[0]);
     }
   }, [availableColors, selectedColor]);
 
+  // 8️⃣ Cuando seleccionamos un color, seleccionamos por defecto el primer storage
   useEffect(() => {
     if (selectedColor && colors[selectedColor] && !selectedStorage) {
       setSelectedStorage(colors[selectedColor].storages[0]);
     }
   }, [selectedColor, colors, selectedStorage]);
 
+  // 9️⃣ Buscamos la variante exacta en base a color + storage
   useEffect(() => {
     if (selectedColor && selectedStorage) {
       const variant = product?.variants.find(
@@ -68,7 +88,53 @@ export const CellPhonePage = () => {
     }
   }, [selectedColor, selectedStorage, product?.variants]);
 
+  // 🔟 Verificamos si no hay stock
   const isOutOfStock = selectedVariant?.stock === 0;
+
+  // Funcion para añadir al carrito
+  const addToCart = () => {
+    if (selectedVariant) {
+      addItem({
+        variantId: selectedVariant.id,
+        productId: product?.id || "",
+        name: product?.name || "",
+        image: product?.images[0] || "",
+        color: selectedVariant.color_name,
+        storage: selectedVariant.storage,
+        price: selectedVariant.price,
+        quantity: count,
+      });
+      toast.success("Producto añadido al carrito", {
+        position: "bottom-right",
+      });
+    }
+  };
+
+  // Funcion para comprar ahora
+  const buyNow = () => {
+    if (selectedVariant) {
+      addItem({
+        variantId: selectedVariant.id,
+        productId: product?.id || "",
+        name: product?.name || "",
+        image: product?.images[0] || "",
+        color: selectedVariant.color_name,
+        storage: selectedVariant.storage,
+        price: selectedVariant.price,
+        quantity: count,
+      });
+      navigate("/checkout");
+    }
+  };
+
+  // solucion bug: Resetear el slug actual cuando cambia en la url ----------Básicamente, el problema era que cuando navegabas a un segundo producto usando la lupa, el componente seguía usando el selectedColor, selectedStorage y selectedVariant del producto anterior.
+  useEffect(() => {
+    setCurrentSlug(slug);
+    //Reiniciar color, almacenamiento y variante
+    setSelectedColor(null);
+    setSelectedStorage(null);
+    setSelectedVariant(null);
+  }, [slug]);
 
   if (isLoading) return <Loader />;
   if (!product || isError)
@@ -173,11 +239,11 @@ export const CellPhonePage = () => {
               <div className="space-y-3">
                 <p className="text-sm font-semibold">Cantidad:</p>
                 <div className="flex gap-8 px-5 py-3 border border-slate-200 w-fit rounded-full">
-                  <button>
+                  <button onClick={decrement} disabled={count === 1}>
                     <LuMinus size={15} />
                   </button>
-                  <span className="text-slate-500 text-sm">1</span>
-                  <button>
+                  <span className="text-slate-500 text-sm">{count}</span>
+                  <button onClick={increment}>
                     <LuPlus size={15} />
                   </button>
                 </div>
@@ -187,6 +253,7 @@ export const CellPhonePage = () => {
                 <button
                   className="bg-[#f3f3f3] uppercase font-semibold tracking-widest text-xs 
 py-4 rounded-full transition-all duration-300 hover:bg-[#e2e2e2]"
+                  onClick={addToCart}
                 >
                   Agregar al carro
                 </button>
@@ -194,8 +261,9 @@ py-4 rounded-full transition-all duration-300 hover:bg-[#e2e2e2]"
                 <button
                   className="bg-black text-white uppercase font-semibold tracking-widest
                 text-xs py-4 rounded-full"
+                  onClick={buyNow}
                 >
-                  Comprar agora
+                  Comprar ahora
                 </button>
               </div>
             </>
